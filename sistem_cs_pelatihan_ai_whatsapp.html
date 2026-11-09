@@ -23,11 +23,11 @@
             }
         }
     </script>
-    <!-- Font Inter & FontAwesome -->
+    <!-- Font Inter & FontAwesome (Stable CDNs) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS for Excel Import Simulation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- SheetJS for Excel Import Simulation (Stable CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -106,7 +106,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="hidden sm:flex items-center gap-2 text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full font-medium border border-emerald-200">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Database: Supabase / Vercel Ready
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Storage: Vercel / Supabase Ready
                     </div>
                     <div class="h-8 w-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm shadow">
                         A
@@ -798,7 +798,6 @@ CREATE TABLE knowledge_base (
         // Color-coded Inbox filter
         function filterInboxStatus(status) {
             state.activeInboxFilter = status;
-            // update pill styles
             ['all', 'waiting_admin', 'admin_takeover', 'active'].forEach(s => {
                 const btn = document.getElementById(`filter-${s === 'all' ? 'all' : (s === 'waiting_admin' ? 'waiting' : (s === 'admin_takeover' ? 'admin' : 'bot'))}`);
                 if(btn) {
@@ -1071,9 +1070,9 @@ CREATE TABLE knowledge_base (
                 let aiReply = "Terima kasih atas pertanyaannya. AI Pelatihan mencatat pertanyaan Anda.";
                 const lower = msg.toLowerCase();
                 if(lower.includes('jadwal') || lower.includes('mulai')) {
-                    aiReply = "AI Knowledge Base: Pelatihan Batch 3 dimulai 20 November 2026 secara online via Zoom pukul 09.00 WIB.";
+                    aiReply = "AI Knowledge Base: Pelatihan Batch 3 dimulai 20 November 2026 secara online via Zoom.";
                 } else if(lower.includes('modul') || lower.includes('materi')) {
-                    aiReply = "AI Knowledge Base: Modul PDF dan rekaman dapat diakses melalui portal peserta 24 jam setelah sesi.";
+                    aiReply = "AI Knowledge Base: Modul PDF dan rekaman dapat diakses melalui portal peserta.";
                 }
                 state.chats[state.selectedContactId].push({ sender: 'bot', message: aiReply, time: timeStr });
             }

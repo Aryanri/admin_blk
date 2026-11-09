@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Pelatihan WA & AI Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        whatsapp: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Inter & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Import Simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-full flex flex-col overflow-hidden">
+
+    <!-- Top Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Main Layout Wrapper -->
+    <div class="flex h-full w-full overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 z-30 shrink-0 md:relative absolute inset-y-0 left-0 -translate-x-full md:translate-x-0">
+            <div class="p-5 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="bg-whatsapp-600 text-white p-2 rounded-xl shadow-lg">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-white text-base leading-tight">Admin Pelatihan</h1>
+                        <span class="text-xs text-whatsapp-500 font-medium flex items-center gap-1 mt-0.5">
+                            <span class="w-2 h-2 rounded-full bg-whatsapp-500 animate-pulse"></span> AI & WA Gateway Active
+                        </span>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+                <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors bg-whatsapp-600 text-white shadow-md">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard
+                </a>
+                <a href="#" onclick="switchTab('inbox')" id="nav-inbox" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white relative">
+                    <i class="fa-solid fa-comments w-5 text-center"></i> Live Inbox WA
+                    <span id="badge-unread" class="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">2</span>
+                </a>
+                <a href="#" onclick="switchTab('contacts')" id="nav-contacts" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-address-book w-5 text-center"></i> Kontak & Kategori
+                </a>
+                <a href="#" onclick="switchTab('broadcast')" id="nav-broadcast" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-bullhorn w-5 text-center"></i> Broadcast Pesan
+                </a>
+                <a href="#" onclick="switchTab('knowledge')" id="nav-knowledge" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-brain w-5 text-center"></i> Data AI & FAQ
+                </a>
+                <a href="#" onclick="switchTab('deployment')" id="nav-deployment" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-server w-5 text-center"></i> Panduan Vercel & API
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer / Quick Simulator Trigger -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/40">
+                <button onclick="openSimulateModal()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 shadow transition-all">
+                    <i class="fa-solid fa-paper-plane"></i> Simulasi Pesan Masuk WA
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-100">
+            <!-- Header bar -->
+            <header class="bg-white border-b border-slate-200 h-16 px-6 flex items-center justify-between shrink-0 shadow-sm">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <h2 id="current-page-title" class="text-lg font-bold text-slate-800">Live Dashboard & Statistik</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2 text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full font-medium border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Database: Supabase / Vercel Ready
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm shadow">
+                        A
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Container (Tabs) -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar relative">
+
+                <!-- TAB 1: DASHBOARD -->
+                <section id="tab-dashboard" class="space-y-6">
+                    <!-- Stat Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Kontak</p>
+                                <h3 id="stat-total-contacts" class="text-2xl font-bold text-slate-800 mt-1">1,248</h3>
+                                <span class="text-xs text-emerald-600 font-semibold mt-1 inline-flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +12% minggu ini</span>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-address-book"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Chat Butuh Admin</p>
+                                <h3 id="stat-active-chats" class="text-2xl font-bold text-slate-800 mt-1">2</h3>
+                                <span class="text-xs text-amber-600 font-semibold mt-1 inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Request Handoff</span>
+                            </div>
+                            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-headset"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Terjawab Otomatis</p>
+                                <h3 id="stat-ai-responses" class="text-2xl font-bold text-slate-800 mt-1">3,892</h3>
+                                <span class="text-xs text-emerald-600 font-semibold mt-1 inline-flex items-center gap-1"><i class="fa-solid fa-robot"></i> Bot Aktif</span>
+                            </div>
+                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Broadcast Terjadwal</p>
+                                <h3 id="stat-scheduled-broadcasts" class="text-2xl font-bold text-slate-800 mt-1">2</h3>
+                                <span class="text-xs text-indigo-600 font-semibold mt-1 inline-flex items-center gap-1"><i class="fa-solid fa-calendar-check"></i> Siap Kirim</span>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action & Legend Overview -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Activity Feed -->
+                        <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800 text-base">Aktivitas Chat & Bot Terbaru</h3>
+                                <button onclick="switchTab('inbox')" class="text-xs text-whatsapp-600 font-semibold hover:underline">Buka Live Inbox <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                            </div>
+                            <div class="space-y-4 flex-1 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar" id="recent-activity-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Status Color Legend Card -->
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base mb-3">Panduan Warna Live Inbox WA</h3>
+                                <p class="text-xs text-slate-500 mb-4">Indikator visual untuk membedakan status penanganan percakapan peserta secara real-time:</p>
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center gap-3 p-2.5 bg-emerald-50/80 rounded-xl border border-emerald-200">
+                                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                        <div>
+                                            <p class="text-xs font-bold text-emerald-900">Chatbot AI Aktif</p>
+                                            <p class="text-[10px] text-emerald-700">Dijawab otomatis oleh AI berdasarkan Knowledge Base</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-2.5 bg-amber-50/90 rounded-xl border border-amber-200">
+                                        <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0 animate-ping"></span>
+                                        <div>
+                                            <p class="text-xs font-bold text-amber-900">Meminta Bantuan Admin</p>
+                                            <p class="text-[10px] text-amber-700">Peserta menekan tombol request chat dengan admin (Butuh Handoff)</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-2.5 bg-blue-50/80 rounded-xl border border-blue-200">
+                                        <span class="w-3.5 h-3.5 rounded-full bg-blue-600 shrink-0"></span>
+                                        <div>
+                                            <p class="text-xs font-bold text-blue-900">Ditangani Admin</p>
+                                            <p class="text-[10px] text-blue-700">Sedang dibalas petugas (Auto-revert 5 menit jika idle)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: LIVE WHATSAPP CHAT INBOX -->
+                <section id="tab-inbox" class="hidden h-full flex flex-col">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 h-[calc(100vh-140px)] flex overflow-hidden">
+                        <!-- Chat List Sidebar -->
+                        <div class="w-full md:w-80 border-r border-slate-200 flex flex-col bg-white">
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800 text-sm">Inbox Peserta WA</h3>
+                                <button onclick="openSimulateModal()" class="text-xs bg-whatsapp-600 hover:bg-whatsapp-700 text-white font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-plus"></i> Chat Baru
+                                </button>
+                            </div>
+                            <div class="p-3 border-b border-slate-100 space-y-2">
+                                <div class="relative">
+                                    <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
+                                    <input type="text" id="search-chat-input" onkeyup="filterChatList()" placeholder="Cari nama atau nomor..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-whatsapp-500">
+                                </div>
+                                <!-- Status Filter Pills -->
+                                <div class="flex items-center gap-1 overflow-x-auto pb-1 text-[10px]" id="inbox-status-filters">
+                                    <button onclick="filterInboxStatus('all')" id="filter-all" class="px-2 py-1 rounded bg-slate-800 text-white font-medium whitespace-nowrap">Semua</button>
+                                    <button onclick="filterInboxStatus('waiting_admin')" id="filter-waiting" class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-medium whitespace-nowrap">Request Admin</button>
+                                    <button onclick="filterInboxStatus('admin_takeover')" id="filter-admin" class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-medium whitespace-nowrap">Ditangani Admin</button>
+                                    <button onclick="filterInboxStatus('active')" id="filter-bot" class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-medium whitespace-nowrap">Chatbot AI</button>
+                                </div>
+                            </div>
+                            <div class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-100" id="chat-list-container">
+                                <!-- Rendered dynamically with color indicators -->
+                            </div>
+                        </div>
+
+                        <!-- Chat Conversation Pane -->
+                        <div class="hidden md:flex flex-1 flex-col bg-slate-50 h-full" id="chat-pane-wrapper">
+                            <!-- Selected Chat Header -->
+                            <div id="active-chat-header" class="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shrink-0">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-whatsapp-500 text-white font-bold flex items-center justify-center text-sm shadow" id="active-avatar">P</div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-sm" id="active-name">Pilih Percakapan</h4>
+                                        <p class="text-xs text-slate-500 flex items-center gap-1.5" id="active-status">
+                                            <span class="w-2 h-2 rounded-full bg-slate-300"></span> Belum dipilih
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2" id="chat-action-buttons">
+                                    <!-- Dynamic Takeover / Mode buttons -->
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages Area -->
+                            <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar" id="chat-messages-container">
+                                <div class="h-full flex flex-col items-center justify-center text-slate-400 text-center">
+                                    <i class="fa-brands fa-whatsapp text-5xl mb-2 text-slate-300"></i>
+                                    <p class="text-sm font-medium">Pilih salah satu ruang chat peserta di sebelah kiri untuk mulai berinteraksi.</p>
+                                </div>
+                            </div>
+
+                            <!-- Inactive / Timer Warning Banner -->
+                            <div id="takeover-timer-banner" class="hidden bg-amber-50 border-t border-amber-200 px-4 py-2 flex items-center justify-between text-xs text-amber-800">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                                    <b>Mode Admin (Ambil Alih):</b> Chat akan otomatis kembali ke AI Bot dalam <span id="countdown-timer" class="font-bold">05:00</span> jika tidak ada aktivitas.
+                                </span>
+                                <button onclick="resetAdminTimer()" class="bg-amber-200 hover:bg-amber-300 px-2.5 py-1 rounded font-semibold text-amber-900 transition-colors">Perpanjang Waktu</button>
+                            </div>
+
+                            <!-- Chat Input Form -->
+                            <div class="bg-white border-t border-slate-200 p-4 shrink-0">
+                                <form id="chat-reply-form" onsubmit="sendAdminMessage(event)" class="flex items-center gap-3">
+                                    <input type="text" id="chat-input-msg" placeholder="Ketik pesan balasan admin atau instruksi AI..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-whatsapp-500">
+                                    <button type="submit" class="bg-whatsapp-600 hover:bg-whatsapp-700 text-white px-5 py-3 rounded-xl font-semibold text-xs flex items-center gap-2 shadow transition-all">
+                                        <i class="fa-solid fa-paper-plane"></i> Kirim
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: CONTACT & CATEGORY MANAGEMENT -->
+                <section id="tab-contacts" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Manajemen Kontak & Kategori Pelatihan</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Kelompokkan peserta otomatis berdasarkan pilihan menu WhatsApp atau upload dari Excel.</p>
+                        </div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <button onclick="openCategoryModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-folder-plus"></i> Kelola Kategori
+                            </button>
+                            <label class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-file-excel"></i> Import Excel (.xlsx)
+                                <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)" class="hidden">
+                            </label>
+                            <button onclick="openAddContactModal()" class="bg-whatsapp-600 hover:bg-whatsapp-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus"></i> Tambah Kontak
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter Pills -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar" id="category-filter-pills">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Contacts Table -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                            <h4 class="font-bold text-slate-800 text-sm">Daftar Kontak Peserta</h4>
+                            <span id="contact-count-label" class="text-xs font-semibold text-slate-500">Menampilkan 0 kontak</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
+                                        <th class="py-3 px-4">Nama Peserta</th>
+                                        <th class="py-3 px-4">Nomor WhatsApp</th>
+                                        <th class="py-3 px-4">Kategori / Grup</th>
+                                        <th class="py-3 px-4">Status Chat</th>
+                                        <th class="py-3 px-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contacts-table-body" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 4: BROADCAST MANAGER -->
+                <section id="tab-broadcast" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Broadcast Form -->
+                        <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-5">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">Buat Pesan Broadcast WhatsApp</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Kirim pengumuman pelatihan ke nomor terpilih dengan jeda waktu anti-banned dan penjadwalan.</p>
+                            </div>
+
+                            <form id="broadcast-form" onsubmit="submitBroadcast(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Judul / Nama Broadcast</label>
+                                    <input type="text" id="bc-title" required placeholder="Contoh: Pengingat Webinar AI Batch 3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-whatsapp-500">
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Target Kategori Penerima</label>
+                                        <select id="bc-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-whatsapp-500">
+                                            <option value="all">Semua Kategori (Semua Kontak)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Jeda Waktu Kirim (Anti-Banned)</label>
+                                        <select id="bc-delay" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-whatsapp-500">
+                                            <option value="5">5 Detik per Pesan (Normal)</option>
+                                            <option value="10">10 Detik per Pesan (Aman)</option>
+                                            <option value="15">15 Detik per Pesan (Sangat Aman)</option>
+                                            <option value="30">30 Detik per Pesan (Bulk Safety)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="text-xs font-bold text-slate-700">Isi Pesan WhatsApp</label>
+                                        <div class="flex gap-1">
+                                            <button type="button" onclick="insertPlaceholder('{nama}')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-medium">+ {nama}</button>
+                                            <button type="button" onclick="insertPlaceholder('{kategori}')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-medium">+ {kategori}</button>
+                                        </div>
+                                    </div>
+                                    <textarea id="bc-message" rows="5" required placeholder="Halo {nama}, mengingatkan pelatihan AI akan dimulai besok pukul 09.00 WIB..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs focus:outline-none focus:border-whatsapp-500 custom-scrollbar"></textarea>
+                                    <p class="text-[11px] text-slate-400 mt-1">Gunakan <b>{nama}</b> untuk mempersonalisasi sapaan peserta.</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Metode Pengiriman</label>
+                                        <select id="bc-mode" onchange="toggleScheduleInput()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-whatsapp-500">
+                                            <option value="immediate">Kirim Sekarang</option>
+                                            <option value="scheduled">Jadwalkan Waktu Tertentu</option>
+                                        </select>
+                                    </div>
+                                    <div id="schedule-time-wrapper" class="hidden">
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Waktu Eksekusi Jadwal</label>
+                                        <input type="datetime-local" id="bc-schedule-time" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-whatsapp-500">
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 flex justify-end">
+                                    <button type="submit" class="bg-whatsapp-600 hover:bg-whatsapp-700 text-white font-semibold px-6 py-3 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all">
+                                        <i class="fa-solid fa-paper-plane"></i> Mulai Broadcast Pesan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Broadcast History & Queue -->
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
+                            <h3 class="font-bold text-slate-800 text-base mb-4">Riwayat & Antrean Broadcast</h3>
+                            <div class="space-y-3 flex-1 overflow-y-auto max-h-[500px] pr-1 custom-scrollbar" id="broadcast-history-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: AI KNOWLEDGE BASE / TRAINING DATA -->
+                <section id="tab-knowledge" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Pengaturan AI Knowledge Base (Bahan Belajar AI)</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Tambahkan FAQ & informasi pelatihan agar AI membalas tepat sasaran dan tidak melenceng.</p>
+                        </div>
+                        <button onclick="openKnowledgeModal()" class="bg-whatsapp-600 hover:bg-whatsapp-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Tambah Pengetahuan AI
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="knowledge-cards-grid">
+                        <!-- Populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- TAB 6: VERCEL DEPLOYMENT & ARCHITECTURE SCHEMA -->
+                <section id="tab-deployment" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                        <div class="border-b border-slate-100 pb-4">
+                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-server text-whatsapp-600"></i> Panduan Deploy & Arsitektur Vercel + Supabase
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Dokumentasi teknis lengkap untuk production-ready deployment ke Vercel dengan PostgreSQL database.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="text-whatsapp-600 font-bold text-sm mb-1"><i class="fa-solid fa-1"></i> Frontend UI (Vercel)</div>
+                                <p class="text-xs text-slate-600 leading-relaxed">Single Page Application responsive menggunakan Tailwind CSS & JavaScript modern yang dihosting di Vercel.</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="text-whatsapp-600 font-bold text-sm mb-1"><i class="fa-solid fa-2"></i> Backend API Routes</div>
+                                <p class="text-xs text-slate-600 leading-relaxed">Next.js API Routes / Vercel Serverless Functions untuk webhook WhatsApp Baileys dan integrasi Gemini AI.</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="text-whatsapp-600 font-bold text-sm mb-1"><i class="fa-solid fa-3"></i> Database (Supabase)</div>
+                                <p class="text-xs text-slate-600 leading-relaxed">PostgreSQL relasional untuk menyimpan data kontak, kategori, sesi chat, broadcast queue, dan knowledge base.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-slate-800 text-sm">Skema Database SQL (Supabase / PostgreSQL)</h4>
+                            <div class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto custom-scrollbar">
+<pre>
+-- 1. Tabel Kategori Peserta
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    keyword_index INT UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Tabel Kontak Peserta
+CREATE TABLE contacts (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    phone VARCHAR(30) UNIQUE NOT NULL,
+    category_id INT REFERENCES categories(id) ON DELETE SET NULL,
+    status VARCHAR(50) DEFAULT 'active', -- active, waiting_admin, admin_takeover
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Tabel Pesan Chat WhatsApp
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    contact_id INT REFERENCES contacts(id) ON DELETE CASCADE,
+    sender VARCHAR(20) NOT NULL, -- 'user', 'bot', 'admin'
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Tabel Broadcast
+CREATE TABLE broadcasts (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    category_id INT REFERENCES categories(id),
+    message TEXT NOT NULL,
+    delay_seconds INT DEFAULT 5,
+    status VARCHAR(50) DEFAULT 'scheduled', -- scheduled, sending, completed
+    scheduled_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. Tabel AI Knowledge Base
+CREATE TABLE knowledge_base (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    category VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- SIMULATE WHATSAPP INCOMING CHAT MODAL -->
+    <div id="modal-simulate" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-whatsapp-600"></i> Simulasi Pesan Masuk WhatsApp
+                </h3>
+                <button onclick="closeSimulateModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="simulate-form" onsubmit="submitSimulation(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Peserta</label>
+                    <input type="text" id="sim-name" required placeholder="Contoh: Rian Utama" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp</label>
+                    <input type="text" id="sim-phone" required placeholder="Contoh: 6281987654321" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Pesan Masuk Peserta</label>
+                    <textarea id="sim-msg" required rows="3" placeholder="Halo admin, saya mau tanya..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-whatsapp-500 custom-scrollbar"></textarea>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeSimulateModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-whatsapp-600 hover:bg-whatsapp-700 text-white rounded-xl text-xs font-semibold shadow">Kirim Pesan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT CONTACT MODAL -->
+    <div id="modal-contact" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 id="contact-modal-title" class="font-bold text-slate-800 text-base">Tambah Kontak Peserta</h3>
+                <button onclick="closeContactModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="contact-form" onsubmit="saveContact(event)" class="space-y-4">
+                <input type="hidden" id="contact-edit-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="contact-name" required placeholder="Nama peserta pelatihan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp</label>
+                    <input type="text" id="contact-phone" required placeholder="628xxxxxxxxxx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pelatihan</label>
+                    <select id="contact-category-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeContactModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-whatsapp-600 hover:bg-whatsapp-700 text-white rounded-xl text-xs font-semibold shadow">Simpan Kontak</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CATEGORY MANAGEMENT MODAL -->
+    <div id="modal-category" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base">Kelola Kategori & Menu Bot WA</h3>
+                <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <form onsubmit="addCategory(event)" class="flex gap-2">
+                    <input type="text" id="new-cat-name" required placeholder="Nama Kategori Baru (Cth: Kelas UI/UX)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-whatsapp-500">
+                    <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow">Tambah</button>
+                </form>
+                <div class="max-h-60 overflow-y-auto space-y-2 custom-scrollbar pr-1" id="category-modal-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeCategoryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD KNOWLEDGE MODAL -->
+    <div id="modal-knowledge" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base">Tambah Bahan Pengetahuan AI (FAQ)</h3>
+                <button onclick="closeKnowledgeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveKnowledge(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul / Topik FAQ</label>
+                    <input type="text" id="kb-title" required placeholder="Contoh: Jadwal Pelatihan Batch 3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Terkait</label>
+                    <input type="text" id="kb-category" required placeholder="Contoh: Jadwal" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-whatsapp-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Isi Jawaban & Panduan AI</label>
+                    <textarea id="kb-content" required rows="4" placeholder="Pelatihan Batch 3 dimulai tanggal 20 November 2026 secara online via Zoom..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-whatsapp-500 custom-scrollbar"></textarea>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeKnowledgeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-whatsapp-600 hover:bg-whatsapp-700 text-white rounded-xl text-xs font-semibold shadow">Simpan Pengetahuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script>
+        let state = {
+            categories: [
+                { id: 1, name: 'Jadwal Pelatihan', keyword: '1' },
+                { id: 2, name: 'Materi & Modul', keyword: '2' },
+                { id: 3, name: 'Sertifikat & Kelulusan', keyword: '3' },
+                { id: 4, name: 'Hubungi Admin / Live Agent', keyword: '4' }
+            ],
+            contacts: [
+                { id: 1, name: 'Budi Santoso', phone: '6281234567890', category_id: 1, status: 'active' },
+                { id: 2, name: 'Siti Aminah', phone: '6281987654321', category_id: 4, status: 'waiting_admin' },
+                { id: 3, name: 'Dewi Lestari', phone: '6285678901234', category_id: 2, status: 'active' },
+                { id: 4, name: 'Ahmad Fauzi', phone: '6282112233445', category_id: 3, status: 'admin_takeover', takeoverTimer: 300 }
+            ],
+            chats: {
+                1: [
+                    { sender: 'user', message: 'Halo admin, kapan jadwal mulai kelas AI?', time: '10:00' },
+                    { sender: 'bot', message: 'Halo Budi Santoso! Selamat datang di Pusat Bantuan Pelatihan. Silakan pilih kategori:\n1. Jadwal Pelatihan\n2. Materi & Modul\n3. Sertifikat\n4. Hubungi Admin', time: '10:00' },
+                    { sender: 'user', message: '1', time: '10:01' },
+                    { sender: 'bot', message: 'Terima kasih telah memilih kategori *Jadwal Pelatihan*. Kontak Anda telah otomatis dimasukkan ke grup Jadwal Pelatihan. Jawaban AI: Pelatihan Batch 3 akan dimulai pada hari Senin, 20 November 2026 pukul 09.00 WIB.', time: '10:01' }
+                ],
+                2: [
+                    { sender: 'user', message: 'Min, saya butuh bantuan manusia untuk konfirmasi pembayaran.', time: '11:15' },
+                    { sender: 'bot', message: 'Baik, Anda memilih Hubungi Admin. Permintaan Anda diteruskan ke petugas.', time: '11:15' },
+                    { sender: 'user', message: 'Tolong cek ya kak secepatnya.', time: '11:16' }
+                ],
+                3: [
+                    { sender: 'user', message: 'Minta link modul PDF dong kak', time: '09:30' },
+                    { sender: 'bot', message: 'Halo Dewi Lestari! Silakan pilih kategori:\n1. Jadwal Pelatihan\n2. Materi & Modul\n3. Sertifikat\n4. Hubungi Admin', time: '09:30' },
+                    { sender: 'user', message: '2', time: '09:31' },
+                    { sender: 'bot', message: 'Terima kasih telah memilih kategori *Materi & Modul*. Kontak Anda otomatis masuk dalam daftar broadcast Materi. AI: Silakan download modul melalui dashboard peserta masing-masing.', time: '09:31' }
+                ],
+                4: [
+                    { sender: 'user', message: 'Sertifikat saya belum muncul di akun', time: '08:45' },
+                    { sender: 'admin', message: 'Halo Ahmad Fauzi, baik akan saya bantu cek ke tim akademik ya.', time: '08:50' }
+                ]
+            },
+            knowledge: [
+                { id: 1, title: 'Jadwal Pelatihan Batch 3', category: 'Jadwal', content: 'Pelatihan AI Batch 3 dimulai 20 November 2026 secara online via Zoom setiap jam 09.00 WIB.' },
+                { id: 2, title: 'Akses Modul dan Rekaman', category: 'Materi', content: 'Semua materi, PDF modul, dan rekaman video dapat diakses melalui portal peserta 24 jam setelah sesi selesai.' },
+                { id: 3, title: 'Penerbitan Sertifikat', category: 'Sertifikat', content: 'Sertifikat digital resmi ber-SK dikirimkan otomatis 3 hari setelah peserta mengisi form evaluasi dan kehadiran min 80%.' }
+            ],
+            broadcasts: [
+                { id: 1, title: 'Pengingat Webinar Pembuka', category: 'Semua Kategori', message: 'Halo {nama}, jangan lupa besok kita ada sesi pembukaan pelatihan AI pukul 09.00 WIB.', status: 'Completed', time: 'Kemarin, 14:00' },
+                { id: 2, title: 'Info Pengumpulan Tugas Modul 1', category: 'Materi & Modul', message: 'Halo {nama}, batas akhir pengumpulan tugas modul 1 adalah malam ini pukul 23.59 WIB.', status: 'Scheduled', time: 'Besok, 08:00' }
+            ],
+            selectedContactId: null,
+            activeCategoryFilter: 'all',
+            activeInboxFilter: 'all',
+            timerInterval: null
+        };
+
+        function loadState() {
+            const saved = localStorage.getItem('wa_admin_pelatihan_state');
+            if (saved) {
+                try { state = JSON.parse(saved); } catch(e) {}
+            }
+        }
+        function saveState() {
+            localStorage.setItem('wa_admin_pelatihan_state', JSON.stringify(state));
+        }
+
+        window.onload = function() {
+            loadState();
+            renderAll();
+            startCountdownEngine();
+        };
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl text-white text-xs font-semibold shadow-xl flex items-center gap-2 transition-all transform translate-y-2 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-slate-800'}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-info-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['dashboard', 'inbox', 'contacts', 'broadcast', 'knowledge', 'deployment'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const nav = document.getElementById(`nav-${t}`);
+                if(nav) {
+                    nav.className = "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white";
+                }
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.className = "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors bg-whatsapp-600 text-white shadow-md";
+            }
+
+            const titles = {
+                dashboard: 'Live Dashboard & Statistik',
+                inbox: 'Live WhatsApp Inbox & Bot',
+                contacts: 'Manajemen Kontak & Kategori',
+                broadcast: 'Broadcast Manager Pesan WA',
+                knowledge: 'Pengaturan Data AI (Knowledge Base)',
+                deployment: 'Panduan Vercel & Arsitektur API'
+            };
+            document.getElementById('current-page-title').innerText = titles[tabId];
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+            renderAll();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+
+        function renderAll() {
+            renderStats();
+            renderActivityFeed();
+            renderChatList();
+            renderContactsTable();
+            renderCategoryFilterPills();
+            renderCategoryModalList();
+            renderContactCategorySelect();
+            renderBroadcastCategorySelect();
+            renderBroadcastHistory();
+            renderKnowledgeCards();
+            if(state.selectedContactId) {
+                renderActiveChat();
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('stat-total-contacts').innerText = state.contacts.length.toLocaleString();
+            const waitingCount = state.contacts.filter(c => c.status === 'waiting_admin').length;
+            document.getElementById('stat-active-chats').innerText = waitingCount;
+            document.getElementById('badge-unread').innerText = waitingCount;
+            document.getElementById('stat-ai-responses').innerText = (3800 + state.contacts.length * 5).toLocaleString();
+            document.getElementById('stat-scheduled-broadcasts').innerText = state.broadcasts.filter(b => b.status === 'Scheduled').length;
+        }
+
+        function renderActivityFeed() {
+            const container = document.getElementById('recent-activity-list');
+            container.innerHTML = '';
+            let activities = [
+                { icon: 'fa-robot', color: 'bg-emerald-50 text-emerald-600', text: 'AI menjawab otomatis pertanyaan Jadwal Pelatihan dari Budi Santoso', time: 'Baru saja' },
+                { icon: 'fa-user-shield', color: 'bg-amber-50 text-amber-600', text: 'Peserta Siti Aminah meminta bantuan chat dengan admin (Request Handoff)', time: '15 menit lalu' },
+                { icon: 'fa-folder-plus', color: 'bg-blue-50 text-blue-600', text: 'Kontak baru Dewi Lestari otomatis masuk kategori Materi & Modul', time: '1 jam lalu' },
+                { icon: 'fa-bullhorn', color: 'bg-indigo-50 text-indigo-600', text: 'Broadcast "Pengingat Webinar" berhasil dikirim ke 1,248 penerima', time: 'Kemarin' }
+            ];
+            activities.forEach(act => {
+                container.innerHTML += `
+                    <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-9 h-9 rounded-xl ${act.color} flex items-center justify-center shrink-0 text-sm shadow-inner">
+                            <i class="fa-solid ${act.icon}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-medium text-slate-800">${act.text}</p>
+                            <span class="text-[10px] text-slate-400 mt-0.5 block">${act.time}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Color-coded Inbox filter
+        function filterInboxStatus(status) {
+            state.activeInboxFilter = status;
+            // update pill styles
+            ['all', 'waiting_admin', 'admin_takeover', 'active'].forEach(s => {
+                const btn = document.getElementById(`filter-${s === 'all' ? 'all' : (s === 'waiting_admin' ? 'waiting' : (s === 'admin_takeover' ? 'admin' : 'bot'))}`);
+                if(btn) {
+                    if(s === status) {
+                        btn.className = "px-2.5 py-1 rounded font-bold text-white shadow " + (s === 'waiting_admin' ? 'bg-amber-600' : (s === 'admin_takeover' ? 'bg-blue-600' : (s === 'active' ? 'bg-emerald-600' : 'bg-slate-900')));
+                    } else {
+                        btn.className = "px-2.5 py-1 rounded font-medium " + (s === 'waiting_admin' ? 'bg-amber-100 text-amber-800' : (s === 'admin_takeover' ? 'bg-blue-100 text-blue-800' : (s === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700')));
+                    }
+                }
+            });
+            renderChatList();
+        }
+
+        function renderChatList() {
+            const container = document.getElementById('chat-list-container');
+            const search = document.getElementById('search-chat-input').value.toLowerCase();
+            container.innerHTML = '';
+
+            let filtered = state.contacts.filter(c => c.name.toLowerCase().includes(search) || c.phone.includes(search));
+            if(state.activeInboxFilter !== 'all') {
+                filtered = filtered.filter(c => c.status === state.activeInboxFilter);
+            }
+            
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Tidak ada percakapan dengan status ini.</div>`;
+                return;
+            }
+
+            filtered.forEach(c => {
+                const isSelected = state.selectedContactId === c.id;
+                const cat = state.categories.find(cat => cat.id === c.category_id);
+                const catName = cat ? cat.name : 'Umum';
+                const lastMsgList = state.chats[c.id] || [];
+                const lastMsg = lastMsgList.length > 0 ? lastMsgList[lastMsgList.length - 1].message : 'Belum ada pesan';
+
+                // Color Coding configuration for 3 states
+                let cardBg = 'bg-white hover:bg-slate-50';
+                let indicatorColor = 'bg-emerald-500';
+                let statusLabel = 'Chatbot AI Aktif';
+                let badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                let iconClass = 'fa-robot text-emerald-600';
+
+                if(c.status === 'waiting_admin') {
+                    cardBg = 'bg-amber-50/70 hover:bg-amber-50 border-l-4 border-amber-500';
+                    indicatorColor = 'bg-amber-500 animate-ping';
+                    statusLabel = 'Meminta Admin (Handoff)';
+                    badgeClass = 'bg-amber-100 text-amber-800 border border-amber-300 font-bold';
+                    iconClass = 'fa-headset text-amber-600';
+                } else if(c.status === 'admin_takeover') {
+                    cardBg = 'bg-blue-50/60 hover:bg-blue-50 border-l-4 border-blue-600';
+                    indicatorColor = 'bg-blue-600';
+                    statusLabel = 'Ditangani Admin';
+                    badgeClass = 'bg-blue-100 text-blue-800 border border-blue-200';
+                    iconClass = 'fa-user-shield text-blue-600';
+                }
+
+                container.innerHTML += `
+                    <div onclick="selectChat(${c.id})" class="p-3.5 flex items-start gap-3 cursor-pointer transition-all ${cardBg} ${isSelected ? 'ring-2 ring-whatsapp-600 z-10' : ''}">
+                        <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm relative shrink-0 shadow">
+                            ${c.name.charAt(0)}
+                            <div class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${indicatorColor} border-2 border-white"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h5 class="font-bold text-xs text-slate-900 truncate">${c.name}</h5>
+                                <span class="text-[9px] px-2 py-0.5 rounded-full ${badgeClass}"><i class="fa-solid ${iconClass} mr-0.5"></i> ${statusLabel}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 truncate mt-1">${lastMsg}</p>
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${catName}</span>
+                                <span class="text-[9px] font-mono text-slate-400">+${c.phone}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectChat(id) {
+            state.selectedContactId = id;
+            renderChatList();
+            renderActiveChat();
+        }
+
+        function renderActiveChat() {
+            const contact = state.contacts.find(c => c.id === state.selectedContactId);
+            if(!contact) return;
+
+            document.getElementById('active-name').innerText = contact.name;
+            document.getElementById('active-avatar').innerText = contact.name.charAt(0);
+            const cat = state.categories.find(cat => cat.id === contact.category_id);
+            const catName = cat ? cat.name : 'Umum';
+
+            const statusEl = document.getElementById('active-status');
+            const actionBtnEl = document.getElementById('chat-action-buttons');
+            const timerBanner = document.getElementById('takeover-timer-banner');
+
+            if(contact.status === 'admin_takeover') {
+                statusStatusText = `<span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span> Ditangani Admin (Active Takeover)`;
+                actionBtnEl.innerHTML = `
+                    <button onclick="revertToAi(${contact.id})" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-robot"></i> Kembalikan ke AI Bot
+                    </button>
+                `;
+                timerBanner.classList.remove('hidden');
+                formatCountdown(contact.takeoverTimer || 300);
+            } else if(contact.status === 'waiting_admin') {
+                statusStatusText = `<span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span> Meminta Bantuan Admin (Handoff Pending)`;
+                actionBtnEl.innerHTML = `
+                    <button onclick="takeoverChat(${contact.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg shadow transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield"></i> Ambil Alih Chat Sekarang
+                    </button>
+                `;
+                timerBanner.classList.add('hidden');
+            } else {
+                statusStatusText = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Chatbot AI Aktif (${catName})`;
+                actionBtnEl.innerHTML = `
+                    <button onclick="takeoverChat(${contact.id})" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield"></i> Ambil Alih Chat
+                    </button>
+                `;
+                timerBanner.classList.add('hidden');
+            }
+            statusEl.innerHTML = statusStatusText;
+
+            const msgContainer = document.getElementById('chat-messages-container');
+            msgContainer.innerHTML = '';
+            const messages = state.chats[contact.id] || [];
+
+            if(messages.length === 0) {
+                msgContainer.innerHTML = `<div class="text-center text-xs text-slate-400 my-auto">Belum ada riwayat pesan.</div>`;
+                return;
+            }
+
+            messages.forEach(m => {
+                let bgClass = 'bg-white text-slate-800 border border-slate-200';
+                let align = 'mr-auto';
+                let senderLabel = contact.name;
+                let icon = 'fa-user';
+
+                if(m.sender === 'bot') {
+                    bgClass = 'bg-emerald-50 text-emerald-900 border border-emerald-200';
+                    align = 'mx-auto w-full max-w-xl';
+                    senderLabel = 'AI Bot Pelatihan';
+                    icon = 'fa-robot text-emerald-600';
+                } else if(m.sender === 'admin') {
+                    bgClass = 'bg-blue-900 text-white';
+                    align = 'ml-auto';
+                    senderLabel = 'Admin Pelatihan';
+                    icon = 'fa-user-shield text-amber-300';
+                }
+
+                msgContainer.innerHTML += `
+                    <div class="flex flex-col ${align} max-w-[80%] space-y-1">
+                        <div class="flex items-center gap-1.5 text-[10px] text-slate-500 px-1">
+                            <i class="fa-solid ${icon}"></i> <b>${senderLabel}</b> • ${m.time}
+                        </div>
+                        <div class="${bgClass} p-3.5 rounded-2xl text-xs shadow-sm whitespace-pre-wrap leading-relaxed">
+                            ${m.message}
+                        </div>
+                    </div>
+                `;
+            });
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        function takeoverChat(contactId) {
+            const contact = state.contacts.find(c => c.id === contactId);
+            if(contact) {
+                contact.status = 'admin_takeover';
+                contact.takeoverTimer = 300; // 5 minutes
+                if(!state.chats[contactId]) state.chats[contactId] = [];
+                state.chats[contactId].push({
+                    sender: 'admin',
+                    message: '[Sistem Handoff] Chat telah diambil alih oleh Admin. Bot AI dijeda.',
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                });
+                saveState();
+                renderAll();
+                showToast(`Chat ${contact.name} berhasil diambil alih. Timer 5 menit dimulai.`);
+            }
+        }
+
+        function revertToAi(contactId) {
+            const contact = state.contacts.find(c => c.id === contactId);
+            if(contact) {
+                contact.status = 'active';
+                delete contact.takeoverTimer;
+                if(!state.chats[contactId]) state.chats[contactId] = [];
+                state.chats[contactId].push({
+                    sender: 'bot',
+                    message: '[Sistem] Chat dikembalikan ke AI Bot otomatis.',
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                });
+                saveState();
+                renderAll();
+                showToast(`Chat ${contact.name} dikembalikan ke AI Bot.`);
+            }
+        }
+
+        function resetAdminTimer() {
+            const contact = state.contacts.find(c => c.id === state.selectedContactId);
+            if(contact && contact.status === 'admin_takeover') {
+                contact.takeoverTimer = 300;
+                saveState();
+                showToast('Waktu ambil alih diperpanjang 5 menit.');
+            }
+        }
+
+        function formatCountdown(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            const formatted = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+            const el = document.getElementById('countdown-timer');
+            if(el) el.innerText = formatted;
+        }
+
+        function startCountdownEngine() {
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                let updated = false;
+                state.contacts.forEach(c => {
+                    if(c.status === 'admin_takeover' && c.takeoverTimer > 0) {
+                        c.takeoverTimer--;
+                        updated = true;
+                        if(c.takeoverTimer === 0) {
+                            c.status = 'active';
+                            delete c.takeoverTimer;
+                            if(!state.chats[c.id]) state.chats[c.id] = [];
+                            state.chats[c.id].push({
+                                sender: 'bot',
+                                message: '[Sistem Auto-Revert] Tidak ada interaksi admin selama 5 menit. Chat otomatis dikembalikan ke AI Bot.',
+                                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                            });
+                            showToast(`Chat ${c.name} otomatis dikembalikan ke AI Bot (Timeout 5 menit).`, 'info');
+                        }
+                    }
+                });
+                if(updated) {
+                    saveState();
+                    if(state.selectedContactId) {
+                        const contact = state.contacts.find(c => c.id === state.selectedContactId);
+                        if(contact && contact.status === 'admin_takeover') {
+                            formatCountdown(contact.takeoverTimer);
+                        } else {
+                            renderActiveChat();
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        function sendAdminMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-msg');
+            const msg = input.value.trim();
+            if(!msg || !state.selectedContactId) return;
+
+            const contact = state.contacts.find(c => c.id === state.selectedContactId);
+            if(!state.chats[state.selectedContactId]) state.chats[state.selectedContactId] = [];
+
+            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            if(contact.status === 'admin_takeover' || contact.status === 'waiting_admin') {
+                contact.status = 'admin_takeover';
+                contact.takeoverTimer = 300; // reset timer on admin reply
+                state.chats[state.selectedContactId].push({ sender: 'admin', message: msg, time: timeStr });
+            } else {
+                state.chats[state.selectedContactId].push({ sender: 'user', message: msg, time: timeStr });
+                let aiReply = "Terima kasih atas pertanyaannya. AI Pelatihan mencatat pertanyaan Anda.";
+                const lower = msg.toLowerCase();
+                if(lower.includes('jadwal') || lower.includes('mulai')) {
+                    aiReply = "AI Knowledge Base: Pelatihan Batch 3 dimulai 20 November 2026 secara online via Zoom pukul 09.00 WIB.";
+                } else if(lower.includes('modul') || lower.includes('materi')) {
+                    aiReply = "AI Knowledge Base: Modul PDF dan rekaman dapat diakses melalui portal peserta 24 jam setelah sesi.";
+                }
+                state.chats[state.selectedContactId].push({ sender: 'bot', message: aiReply, time: timeStr });
+            }
+
+            input.value = '';
+            saveState();
+            renderActiveChat();
+            renderChatList();
+        }
+
+        function renderCategoryFilterPills() {
+            const container = document.getElementById('category-filter-pills');
+            container.innerHTML = `
+                <button onclick="filterContactsCategory('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${state.activeCategoryFilter === 'all' ? 'bg-whatsapp-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                    Semua Kontak (${state.contacts.length})
+                </button>
+            `;
+            state.categories.forEach(cat => {
+                const count = state.contacts.filter(c => c.category_id === cat.id).length;
+                const active = state.activeCategoryFilter === cat.id;
+                container.innerHTML += `
+                    <button onclick="filterContactsCategory(${cat.id})" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${active ? 'bg-whatsapp-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                        ${cat.name} (${count})
+                    </button>
+                `;
+            });
+        }
+
+        function filterContactsCategory(catId) {
+            state.activeCategoryFilter = catId;
+            renderContactsTable();
+            renderCategoryFilterPills();
+        }
+
+        function renderContactsTable() {
+            const tbody = document.getElementById('contacts-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = state.contacts;
+            if(state.activeCategoryFilter !== 'all') {
+                filtered = state.contacts.filter(c => c.category_id === state.activeCategoryFilter);
+            }
+
+            document.getElementById('contact-count-label').innerText = `Menampilkan ${filtered.length} kontak`;
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">Tidak ada kontak dalam kategori ini.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(c => {
+                const cat = state.categories.find(cat => cat.id === c.category_id);
+                const catName = cat ? cat.name : 'Umum';
+
+                let statusBadge = '<span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold text-[10px]">AI Bot Aktif</span>';
+                if(c.status === 'waiting_admin') statusBadge = '<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold text-[10px]">Meminta Admin</span>';
+                else if(c.status === 'admin_takeover') statusBadge = '<span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-semibold text-[10px]">Ditangani Admin</span>';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+                        <td class="py-3 px-4 font-bold text-slate-800">${c.name}</td>
+                        <td class="py-3 px-4 font-mono text-slate-600">+${c.phone}</td>
+                        <td class="py-3 px-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md font-medium text-[11px]">${catName}</span></td>
+                        <td class="py-3 px-4">${statusBadge}</td>
+                        <td class="py-3 px-4 text-right space-x-1">
+                            <button onclick="openEditContactModal(${c.id})" class="text-slate-500 hover:text-slate-800 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteContact(${c.id})" class="text-rose-500 hover:text-rose-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleExcelImport(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    let importedCount = 0;
+                    json.forEach(row => {
+                        const name = row.Nama || row.name || row.NamaPeserta;
+                        const phone = String(row.Phone || row.phone || row.NomorWA || '').replace(/\D/g,'');
+                        const catName = row.Kategori || row.category || 'Jadwal Pelatihan';
+
+                        if(name && phone) {
+                            let cat = state.categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+                            let catId = cat ? cat.id : state.categories[0].id;
+
+                            let existing = state.contacts.find(c => c.phone === phone);
+                            if(!existing) {
+                                state.contacts.push({
+                                    id: Date.now() + Math.floor(Math.random()*1000),
+                                    name: name,
+                                    phone: phone,
+                                    category_id: catId,
+                                    status: 'active'
+                                });
+                                importedCount++;
+                            }
+                        }
+                    });
+
+                    saveState();
+                    renderAll();
+                    showToast(`Berhasil import ${importedCount} kontak dari file Excel!`);
+                } catch(err) {
+                    showToast('Gagal memproses file Excel.', 'error');
+                }
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderBroadcastCategorySelect() {
+            const select = document.getElementById('bc-category');
+            select.innerHTML = `<option value="all">Semua Kategori (Semua Kontak)</option>`;
+            state.categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+        }
+
+        function insertPlaceholder(placeholder) {
+            const textarea = document.getElementById('bc-message');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+        }
+
+        function toggleScheduleInput() {
+            const mode = document.getElementById('bc-mode').value;
+            const wrapper = document.getElementById('schedule-time-wrapper');
+            if(mode === 'scheduled') wrapper.classList.remove('hidden');
+            else wrapper.classList.add('hidden');
+        }
+
+        function submitBroadcast(e) {
+            e.preventDefault();
+            const title = document.getElementById('bc-title').value;
+            const catId = document.getElementById('bc-category').value;
+            const delay = document.getElementById('bc-delay').value;
+            const message = document.getElementById('bc-message').value;
+            const mode = document.getElementById('bc-mode').value;
+            const scheduleTime = document.getElementById('bc-schedule-time').value;
+
+            let catName = 'Semua Kategori';
+            if(catId !== 'all') {
+                const cat = state.categories.find(c => c.id == catId);
+                if(cat) catName = cat.name;
+            }
+
+            state.broadcasts.unshift({
+                id: Date.now(),
+                title: title,
+                category: catName,
+                message: message,
+                status: mode === 'scheduled' ? 'Scheduled' : 'Completed',
+                time: mode === 'scheduled' ? `Jadwal: ${scheduleTime.replace('T', ' ')}` : 'Baru saja'
+            });
+
+            saveState();
+            renderAll();
+            document.getElementById('broadcast-form').reset();
+            toggleScheduleInput();
+            showToast(`Broadcast "${title}" berhasil disiapkan!`);
+        }
+
+        function renderBroadcastHistory() {
+            const container = document.getElementById('broadcast-history-list');
+            container.innerHTML = '';
+            state.broadcasts.forEach(bc => {
+                const isScheduled = bc.status === 'Scheduled';
+                container.innerHTML += `
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h5 class="font-bold text-xs text-slate-800">${bc.title}</h5>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${isScheduled ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${bc.status}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">${bc.message}</p>
+                            <span class="text-[10px] text-slate-400 mt-1 block"><i class="fa-solid fa-clock mr-1"></i> ${bc.time} • Target: ${bc.category}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderKnowledgeCards() {
+            const container = document.getElementById('knowledge-cards-grid');
+            container.innerHTML = '';
+            state.knowledge.forEach(kb => {
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">${kb.category}</span>
+                                <button onclick="deleteKnowledge(${kb.id})" class="text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm mb-1">${kb.title}</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">${kb.content}</p>
+                        </div>
+                        <div class="pt-3 border-t border-slate-100 flex items-center gap-1.5 text-[10px] text-slate-400">
+                            <i class="fa-solid fa-shield-check text-emerald-600"></i> Digunakan AI untuk acuan jawaban
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function saveKnowledge(e) {
+            e.preventDefault();
+            const title = document.getElementById('kb-title').value;
+            const category = document.getElementById('kb-category').value;
+            const content = document.getElementById('kb-content').value;
+
+            state.knowledge.push({ id: Date.now(), title, category, content });
+            saveState();
+            renderAll();
+            closeKnowledgeModal();
+            showToast('Pengetahuan AI berhasil ditambahkan!');
+        }
+
+        function deleteKnowledge(id) {
+            state.knowledge = state.knowledge.filter(k => k.id !== id);
+            saveState();
+            renderAll();
+            showToast('Pengetahuan AI dihapus.');
+        }
+
+        function openSimulateModal() { document.getElementById('modal-simulate').classList.remove('hidden'); }
+        function closeSimulateModal() { document.getElementById('modal-simulate').classList.add('hidden'); document.getElementById('simulate-form').reset(); }
+
+        function openAddContactModal() {
+            document.getElementById('contact-modal-title').innerText = 'Tambah Kontak Peserta';
+            document.getElementById('contact-edit-id').value = '';
+            document.getElementById('contact-name').value = '';
+            document.getElementById('contact-phone').value = '';
+            renderContactCategorySelect();
+            document.getElementById('modal-contact').classList.remove('hidden');
+        }
+
+        function openEditContactModal(id) {
+            const c = state.contacts.find(x => x.id === id);
+            if(!c) return;
+            document.getElementById('contact-modal-title').innerText = 'Edit Kontak Peserta';
+            document.getElementById('contact-edit-id').value = c.id;
+            document.getElementById('contact-name').value = c.name;
+            document.getElementById('contact-phone').value = c.phone;
+            renderContactCategorySelect();
+            document.getElementById('contact-category-select').value = c.category_id;
+            document.getElementById('modal-contact').classList.remove('hidden');
+        }
+
+        function closeContactModal() { document.getElementById('modal-contact').classList.add('hidden'); }
+
+        function renderContactCategorySelect() {
+            const select = document.getElementById('contact-category-select');
+            select.innerHTML = '';
+            state.categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+        }
+
+        function saveContact(e) {
+            e.preventDefault();
+            const editId = document.getElementById('contact-edit-id').value;
+            const name = document.getElementById('contact-name').value;
+            const phone = document.getElementById('contact-phone').value.replace(/\D/g,'');
+            const category_id = parseInt(document.getElementById('contact-category-select').value);
+
+            if(editId) {
+                const c = state.contacts.find(x => x.id == editId);
+                if(c) { c.name = name; c.phone = phone; c.category_id = category_id; }
+                showToast('Kontak berhasil diperbarui!');
+            } else {
+                const newId = Date.now();
+                state.contacts.unshift({ id: newId, name, phone, category_id, status: 'active' });
+                state.chats[newId] = [
+                    { sender: 'user', message: 'Halo admin, saya baru bergabung.', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) },
+                    { sender: 'bot', message: `Halo ${name}! Selamat datang di Pusat Pelatihan. Silakan pilih kategori:\n1. Jadwal Pelatihan\n2. Materi & Modul\n3. Sertifikat\n4. Hubungi Admin`, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }
+                ];
+                showToast('Kontak baru berhasil ditambahkan!');
+            }
+
+            saveState();
+            renderAll();
+            closeContactModal();
+        }
+
+        function deleteContact(id) {
+            if(confirm('Hapus kontak peserta ini?')) {
+                state.contacts = state.contacts.filter(c => c.id !== id);
+                delete state.chats[id];
+                saveState();
+                renderAll();
+                showToast('Kontak berhasil dihapus.');
+            }
+        }
+
+        function openCategoryModal() { document.getElementById('modal-category').classList.remove('hidden'); renderCategoryModalList(); }
+        function closeCategoryModal() { document.getElementById('modal-category').classList.add('hidden'); }
+
+        function renderCategoryModalList() {
+            const list = document.getElementById('category-modal-list');
+            list.innerHTML = '';
+            state.categories.forEach(cat => {
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                        <div>
+                            <b>${cat.name}</b>
+                            <span class="text-[10px] text-slate-400 block">Keyword Bot: ${cat.keyword || '-'}</span>
+                        </div>
+                        <button onclick="deleteCategory(${cat.id})" class="text-rose-500 hover:text-rose-700 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function addCategory(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-cat-name');
+            const name = nameInput.value.trim();
+            if(!name) return;
+
+            state.categories.push({ id: Date.now(), name: name, keyword: String(state.categories.length + 1) });
+            nameInput.value = '';
+            saveState();
+            renderAll();
+            renderCategoryModalList();
+            showToast('Kategori baru berhasil dibuat!');
+        }
+
+        function deleteCategory(id) {
+            state.categories = state.categories.filter(c => c.id !== id);
+            saveState();
+            renderAll();
+            renderCategoryModalList();
+            showToast('Kategori dihapus.');
+        }
+
+        function openKnowledgeModal() { document.getElementById('modal-knowledge').classList.remove('hidden'); }
+        function closeKnowledgeModal() { document.getElementById('modal-knowledge').classList.add('hidden'); }
+
+        function submitSimulation(e) {
+            e.preventDefault();
+            const name = document.getElementById('sim-name').value;
+            const phone = document.getElementById('sim-phone').value.replace(/\D/g,'');
+            const msg = document.getElementById('sim-msg').value;
+
+            let contact = state.contacts.find(c => c.phone === phone);
+            let contactId;
+            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            if(!contact) {
+                contactId = Date.now();
+                contact = { id: contactId, name: name, phone: phone, category_id: state.categories[0].id, status: 'active' };
+                state.contacts.unshift(contact);
+                state.chats[contactId] = [];
+                let menuText = `Halo ${name}! Selamat datang di Pusat Pelayanan Pelatihan AI. Silakan balas dengan angka pilihan kategori berikut:\n`;
+                state.categories.forEach((cat, idx) => { menuText += `${idx + 1}. ${cat.name}\n`; });
+                state.chats[contactId].push({ sender: 'bot', message: menuText, time: timeStr });
+            } else {
+                contactId = contact.id;
+            }
+
+            if(!state.chats[contactId]) state.chats[contactId] = [];
+            state.chats[contactId].push({ sender: 'user', message: msg, time: timeStr });
+
+            let botReply = "";
+            const trimmed = msg.trim();
+            const selectedCatIndex = parseInt(trimmed) - 1;
+
+            if(!isNaN(selectedCatIndex) && state.categories[selectedCatIndex]) {
+                const chosenCat = state.categories[selectedCatIndex];
+                contact.category_id = chosenCat.id;
+                
+                if(chosenCat.name.toLowerCase().includes('admin') || chosenCat.name.toLowerCase().includes('live')) {
+                    contact.status = 'waiting_admin';
+                    botReply = `Terima kasih ${contact.name}. Anda telah memilih *${chosenCat.name}*. Permintaan Anda telah diteruskan ke petugas admin. Mohon tunggu sebentar.`;
+                } else {
+                    contact.status = 'active';
+                    botReply = `Terima kasih telah memilih *${chosenCat.name}*. Kontak Anda otomatis ditambahkan ke grup kategori tersebut.\n\nAI Knowledge Base Info: Berdasarkan bahan pelatihan, ${chosenCat.name} diselenggarakan sesuai jadwal di portal peserta.`;
+                }
+            } else {
+                botReply = `Halo ${contact.name}, AI Pelatihan menjawab: Pertanyaan Anda mengenai "${msg}" telah dicatat. Balas angka 1-4 untuk memilih kategori atau ketik 4 jika ingin meminta bantuan Admin.`;
+                const lower = msg.toLowerCase();
+                if(lower.includes('jadwal')) {
+                    botReply = "AI Knowledge Base: Jadwal Pelatihan Batch 3 dimulai 20 November 2026 pukul 09.00 WIB via Zoom.";
+                } else if(lower.includes('admin') || lower.includes('bantuan') || lower.includes('cs')) {
+                    contact.status = 'waiting_admin';
+                    botReply = "Permintaan chat dengan admin telah diterima dan diteruskan ke petugas.";
+                }
+            }
+
+            state.chats[contactId].push({ sender: 'bot', message: botReply, time: timeStr });
+
+            saveState();
+            closeSimulateModal();
+            switchTab('inbox');
+            selectChat(contactId);
+            showToast(`Simulasi pesan baru dari ${name} berhasil diterima!`);
+        }
+    </script>
+</body>
+</html>
